@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from torch import numel, linspace, cos, sin
 import numpy as np
 from CreateModel import Model
+
 def PlotSolution(sol, model:Model) -> None:
     xs = model.xs
     ys = model.ys

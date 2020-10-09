@@ -110,7 +110,6 @@ def gapso() ->None:
 
         # 初始化速度
         particle[i] = particle[i]._replace(Velocity = (np.zeros(VarSize).reshape(-1), np.zeros(VarSize).reshape(-1)))
-        (x, y) = particle[i].Position
 
         # 航迹代价计算
         (pic, pis) = MyCost(particle[i].Position, model)
@@ -146,72 +145,67 @@ def gapso() ->None:
             particle[i]= particle[i]._replace(Position = mutation(particle[i].Position) )  # 变异
 
 
-        (VelMin_x, VelMin_y) = VelMin
-        (VelMax_x, VelMax_y) = VelMax
-        (VarMin_x, VarMin_y) = VarMin
-        (VarMax_x, VarMax_y) = VarMax
-        (vx, vy) = particle[i].Velocity
-        (px, py) = particle[i].Position
-        (bpx, bpy) = particle[i].Best.Position
-        (gpx, gpy) = GlobalBest.Position
-        # 更新速度
-        vx = list(vx);vy = list(vy)
-        bpx = list(bpx);bpy = list(bpy)
+            (VelMin_x, VelMin_y) = VelMin
+            (VelMax_x, VelMax_y) = VelMax
+            (VarMin_x, VarMin_y) = VarMin
+            (VarMax_x, VarMax_y) = VarMax
+            (vx, vy) = particle[i].Velocity
+            (px, py) = particle[i].Position
+            (bpx, bpy) = particle[i].Best.Position
+            (gpx, gpy) = GlobalBest.Position
+            # 更新速度
+            vx = list(vx);vy = list(vy)
+            bpx = list(bpx);bpy = list(bpy)
 
-        bpx_px = [bpx[i]-px[i] for i in range(len(bpx))]
-        bpy_py = [bpy[i]-py[i] for i in range(len(bpy))]
-        gpx_px = [gpx[i]-px[i] for i in range(len(gpx))]
-        gpy_py = [gpy[i]-py[i] for i in range(len(gpy))]
-        #velx = w * vx + c1 * np.random.rand(VarSize[0],VarSize[1]) * bpx_px + c2 * np.random.rand(VarSize[0],VarSize[1]) * gpx_px
+            bpx_px = [bpx[i]-px[i] for i in range(len(bpx))]
+            bpy_py = [bpy[i]-py[i] for i in range(len(bpy))]
+            gpx_px = [gpx[i]-px[i] for i in range(len(gpx))]
+            gpy_py = [gpy[i]-py[i] for i in range(len(gpy))]
+            #velx = w * vx + c1 * np.random.rand(VarSize[0],VarSize[1]) * bpx_px + c2 * np.random.rand(VarSize[0],VarSize[1]) * gpx_px
 
-        velx = updatespeed(w, vx, c1, VarSize, bpx_px, c2, gpx_px)
-        # 更新速度范围
-        print("velx:", velx)
+            velx = updatespeed(w, vx, c1, VarSize, bpx_px, c2, gpx_px)
 
-        velx = clip(velx, VelMin_x,None)
-        velx = clip(velx, None,VelMax_x)
-        print(px)
-        print(velx)
-        # 更新位置
-        posx = px + velx
-        print(posx)
-        # 速度镜像
-        OutOfTheRange = getOutTheRange(VarMin_x, VarMax_x, posx)
+            # 更新速度范围
+            velx = clip(velx, VelMin_x,None)
+            velx = clip(velx, None,VelMax_x)
 
-        for i in OutOfTheRange:
-            velx[i] = -velx[i]
-        # 更新位置范围
-        posx = clip(posx, VarMin_x, None)
-        posx = clip(posx, None, VarMax_x)
+            # 更新位置
+            posx = px + velx
 
-        #vely = w * vy + c1 * np.random.rand(VarSize[0],VarSize[1]) * bpy_py + c2 * np.random.rand(VarSize[0],VarSize[1]) * (gpy - py)
-        vely = updatespeed(w, vy, c1, VarSize, bpy_py, c2, gpy_py)
-        vely = clip(vely, VelMin_y, None)
-        vely = clip(vely, None, VelMax_y)
-        posy = py + vely
-        OutOfTheRange = getOutTheRange(VarMin_y, VarMax_y, posy)
-        print("outoftherange: ",OutOfTheRange)
-        for i in OutOfTheRange:
-            vely[i] = -vely[i]
-        posy = clip(posy, VarMin_y, None)
-        posy = clip(posy, None, VarMax_y)
+            # 速度镜像
+            OutOfTheRange = getOutTheRange(VarMin_x, VarMax_x, posx)
 
-        particle[i] = particle[i]._replace(Position=(posx,posy),Velocity=(velx,vely))
+            for i in OutOfTheRange:
+                velx[i] = -velx[i]
+            # 更新位置范围
+            posx = clip(posx, VarMin_x, None)
+            posx = clip(posx, None, VarMax_x)
+
+            #vely = w * vy + c1 * np.random.rand(VarSize[0],VarSize[1]) * bpy_py + c2 * np.random.rand(VarSize[0],VarSize[1]) * (gpy - py)
+            vely = updatespeed(w, vy, c1, VarSize, bpy_py, c2, gpy_py)
+            vely = clip(vely, VelMin_y, None)
+            vely = clip(vely, None, VelMax_y)
+            posy = py + vely
+            OutOfTheRange = getOutTheRange(VarMin_y, VarMax_y, posy)
+            for i in OutOfTheRange:
+                vely[i] = -vely[i]
+            posy = list(clip(posy, VarMin_y, None))
+            posy = list(clip(posy, None, VarMax_y))
+
+            particle[i] = particle[i]._replace(Position=(posx,posy),Velocity=(velx,vely))
 
 
-        # 代价函数
-        (pic, pis) = MyCost(particle[i].Position, model)
-        particle[i] = particle[i]._replace(Cost=pic, Sol=pis)
-        #[particle[i] .Cost, particle[i] .Sol] = MyCost(particle[i].Position, model)
+            # 代价函数
+            (pic, pis) = MyCost(particle[i].Position, model)
+            particle[i] = particle[i]._replace(Cost=pic, Sol=pis)
+            #[particle[i] .Cost, particle[i] .Sol] = MyCost(particle[i].Position, model)
 
-        # 更新全局最佳
-        if particle[i].Cost.real < particle[i].Best.Cost.real:
-            particle[i] = particle[i]._replace(Position=particle[i].Position,Cost=particle[i].Cost,Sol=particle[i].Sol)
-
-
-        # 更新全局最佳
-        if particle[i].Best.Cost.real < GlobalBest.Cost.real:
-            GlobalBest = particle[i].Best
+            # 更新全局最佳
+            if particle[i].Cost.real < particle[i].Best.Cost.real:
+                particle[i] = particle[i]._replace(Position=particle[i].Position,Cost=particle[i].Cost,Sol=particle[i].Sol)
+                #更新全局最佳
+                if particle[i].Best.Cost.real < GlobalBest.Cost.real:
+                    GlobalBest = particle[i].Best
 
          # 更新最优代价
         BestCost[it] = GlobalBest.Cost.real
@@ -232,12 +226,6 @@ def gapso() ->None:
 
 
      #  # 结果输出静态航迹及总时间
-
-    # figure
-    # plot(BestCost, 'LineWidth', 2)
-    # xlabel('Iteration')
-    # ylabel('Best Cost')
-    # grid on
     """
     xoyo = ()
     xoyo.x0 = GlobalBest.Sol.xx
